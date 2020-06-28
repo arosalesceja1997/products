@@ -1,16 +1,10 @@
-// let theObject = new XMLHttpRequest();
-// theObject.open('GET', 'crud.php', true);
-// theObject.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-// theObject.onreadystatechange = function () {
-//   document.getElementById('title').innerHTML = theObject.responseText;
-// }
-// theObject.send();
-
+let editing = false;
 $(function () {
+  $('#cancel').hide();
   $('#search').keyup(function () {
     let search = $('#search').val();
     $.ajax({
-      url: '/php/config.php',
+      url: '/php/searchProduct.php',
       type: 'POST',
       data: { search },
       success: function (response) {
@@ -48,7 +42,6 @@ $(function () {
 
   $('#addProduct').submit(function (e) {
     let postData = new FormData($('#addProduct')[0]);
-
     $.ajax({
       url: 'php/addProduct.php',
       type: 'POST',
@@ -57,7 +50,7 @@ $(function () {
       contentType: false,
       success: function (response) {
         console.log(response);
-        $('#addProduct').trigger('reset');
+        cancelar();
         showProducts();
       }
     });
@@ -80,7 +73,7 @@ function showProducts() {
         img = product.img;
 
         template += `
-          <div class="col-6">
+          <div class="col-4">
             <div class="card mb-3">
               <h3 class="card-header">${product.name}</h3>
               <img style="height: 200px; width: 100%; display: block;" src="${img}" alt="Card image">
@@ -123,17 +116,31 @@ function validarFile(all) {
 }
 
 function editProduct(id) {
+  $('#cancel').show();
+  editing = true;
+  const data = {
+    thisId: id
+  };
+
   $.ajax({
-    url: 'php/addProduct.php',
+    url: 'php/editProduct.php',
     type: 'POST',
-    data: id,
-    processData: false,
-    contentType: false,
+    data: data,
     success: function (response) {
-      $('#addProduct').trigger('reset');
-      showProducts();
+      let product = JSON.parse(response);
+      $('#code').val(product[0].id);
+      $('#name').val(product[0].name);
+      $('#type').val(product[0].typeProduct);
+      $('#description').val(product[0].description);
+      $('#price').val(product[0].price);
+      // $('#fileImg').val(product[0].img);
+      // console.log(product[0].img);
+      $('#submit').val('Guardar');
+
     }
   });
+
+
 }
 
 function deleteProduct(id) {
@@ -146,8 +153,15 @@ function deleteProduct(id) {
     type: 'POST',
     data: data,
     success: function (response) {
-      console.log(response);
       showProducts();
     }
   });
+}
+
+function cancelar() {
+  $('#submit').val('Agregar');
+  $('#cancel').hide();
+  $('#addProduct').trigger('reset');
+  $('#code').val("");
+  editing = false;
 }
